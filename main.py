@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends
-from models import SleepSession, SleepSettings, SleepAdvice, RealtimeData
-from storage import sessions, settings, advice, latest_realtime
-from security import verify_iot_key
+from .models import SleepSession, RealtimeData, SleepSettings, SleepAdvice
+from .storage import sessions, latest_realtime, settings, advice
+from .security import verify_iot_key
 
 app = FastAPI(title="Sleepy Pillow Cloud API")
 
@@ -10,30 +10,46 @@ def home():
     return {"status": "Sleepy Pillow API online"}
 
 # 🔽 IOT → CLOUD
-@app.post("/ingest/session")
-def ingest_session(session: SleepSession, _: str = Depends(verify_iot_key)):
-    sessions.append(session)
-    return {"message": "session stored"}
+@app.post("/ingest/all")
+def ingest_all(data: dict, _: str = Depends(verify_iot_key)):
+    # Stocker les sessions
+    for s in data.get("sessions", []):
+        sessions.append(SleepSession(**s))
 
-@app.post("/ingest/realtime")
-def ingest_realtime(data: RealtimeData, _: str = Depends(verify_iot_key)):
+    # Stocker le realtime
     global latest_realtime
-    latest_realtime = data
-    return {"message": "realtime updated"}
+    if "realtime" in data:
+        latest_realtime = RealtimeData(**data["realtime"])
 
-@app.post("/ingest/settings")
-def ingest_settings(new_settings: SleepSettings, _: str = Depends(verify_iot_key)):
+    # Stocker les settings
     global settings
-    settings = new_settings
-    return {"message": "settings updated"}
+    if "settings" in data:
+        settings = SleepSettings(**data["settings"])
 
-@app.post("/ingest/advice")
-def ingest_advice(new_advice: SleepAdvice, _: str = Depends(verify_iot_key)):
-    advice.append(new_advice)
-    return {"message": "advice stored"}
+    # Stocker les conseils
+    for a in data.get("advice", []):
+        advice.append(SleepAdvice(**a))
+
+    return {"message": "all data stored"}
 
 # 🔼 CLOUD → APP
-@app.get("/data")
+@app.get("/sessions")
+def get_sessions():
+    return sessions
+
+@app.get("/realtime")
+def get_realtime():
+    return latest_realtime
+
+@app.get("/settings")
+def get_settings():
+    return settings
+
+@app.get("/advice")
+def get_advice():
+    return advice
+
+@app.get("/all")
 def get_all_data():
     return {
         "sessions": sessions,
@@ -41,3 +57,4 @@ def get_all_data():
         "settings": settings,
         "advice": advice
     }
+
