@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends
-from .models import SleepSession, RealtimeData, SleepSettings, SleepAdvice
-from .storage import sessions, latest_realtime, settings, advice
-from .security import verify_iot_key
+from models import SleepSession, RealtimeData, SleepSettings, SleepAdvice
+from storage import sessions, latest_realtime, settings, advice
+from security import verify_iot_key
 
 app = FastAPI(title="Sleepy Pillow Cloud API")
 
@@ -57,4 +57,5 @@ def get_all_data():
         "settings": settings,
         "advice": advice
     }
+
 
