@@ -25,9 +25,26 @@ class SleepSession(BaseModel):
     fatigueLevel: int
 
 
+class SleepSettings(BaseModel):
+    targetCycles: int
+    targetBedTime: str
+    targetWakeTime: str
+    enableNotifications: bool
+    enableSmartAlarm: bool
+    theme: Literal["auto", "dark", "light"]
+    fatigueThreshold: int
+    connectedDevice: str
+
+
+class SleepAdvice(BaseModel):
+    id: str
+    title: str
+    description: str
+    category: str
+    priority: Literal["low", "medium", "high"]
+
+
 class RealtimeData(BaseModel):
-    deviceId: str
-    timestamp: int
     isAsleep: bool
     currentPhase: str
     heartRate: int
