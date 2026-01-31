@@ -8,7 +8,7 @@ app = FastAPI(title="Sleepy Pillow Cloud API")
 @app.get("/")
 def home():
     return {"status": "Sleepy Pillow API online"}
-
+"""
 # 🔽 IOT → CLOUD
 @app.post("/ingest/all")
 def ingest_all(data: dict, _: str = Depends(verify_iot_key)):
@@ -31,7 +31,28 @@ def ingest_all(data: dict, _: str = Depends(verify_iot_key)):
         advice.append(SleepAdvice(**a))
 
     return {"message": "all data stored"}
+    version avec historique
+"""
+@app.post("/ingest/all")
+def ingest_all(data: dict, _: str = Depends(verify_iot_key)):
+    global sessions, latest_realtime, settings, advice
 
+    # Écraser complètement les anciennes données
+    sessions = [SleepSession(**s) for s in data.get("sessions", [])]
+    
+    if "realtime" in data:
+        latest_realtime = RealtimeData(**data["realtime"])
+    else:
+        latest_realtime = None
+
+    if "settings" in data:
+        settings = SleepSettings(**data["settings"])
+    else:
+        settings = None
+
+    advice = [SleepAdvice(**a) for a in data.get("advice", [])]
+
+    return {"message": "all data updated"}
 # 🔼 CLOUD → APP
 @app.get("/sessions")
 def get_sessions():
@@ -57,5 +78,6 @@ def get_all_data():
         "settings": settings,
         "advice": advice
     }
+
 
 
